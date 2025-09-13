@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  mysql-service:
+    image: mysql
+    container_name: mysql-db
+    ports:
+      - "3306:3306"
+    volumes:
+      - database_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+  redpanda:
+    image: redpandadata/redpanda:latest
+    container_name: redpanda
+    command: >
+      redpanda start --overprovisioned --smp 1 --memory 512M 
+      --reserve-memory 0M --node-id 0 
+      --check=false
+    ports:
+      - "9092:9092"
+      - "9644:9644"
+
+  redpanda-console:
+    image: redpandadata/console:latest
+    container_name: redpanda-console
+    environment:
+      - KAFKA_BROKERS=redpanda:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redpanda
+
+volumes:
+  database_data:
