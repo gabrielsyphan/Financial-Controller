@@ -1,5 +1,6 @@
 package com.syphan.financial.app.provider.mysql.model
 
+import com.syphan.financial.domain.entity.ReportEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
@@ -19,6 +20,8 @@ data class ReportModel(
     val fileName: String,
     @Column(name = "file_type", nullable = false, length = 20)
     val fileType: String,
+    @Column(name = "file_size", nullable = false, columnDefinition = "BIGINT")
+    val fileSize: Long,
     @Column(name = "period_start", nullable = false, columnDefinition = "TIMESTAMP")
     val periodStart: LocalDate,
     @Column(name = "period_end", nullable = false, columnDefinition = "TIMESTAMP")
@@ -28,3 +31,16 @@ data class ReportModel(
     @Column(name = "updated_at", nullable = true, columnDefinition = "TIMESTAMP")
     val updatedAt: LocalDateTime? = null,
 )
+
+fun ReportModel.toEntity() =
+    ReportEntity(
+        id = this.id,
+        filePath = this.filePath,
+        fileName = this.fileName,
+        fileType = this.fileType,
+        fileSize = this.fileSize,
+        periodStart = this.periodStart,
+        periodEnd = this.periodEnd,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+    )

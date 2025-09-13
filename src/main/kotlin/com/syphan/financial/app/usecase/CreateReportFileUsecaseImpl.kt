@@ -2,9 +2,11 @@ package com.syphan.financial.app.usecase
 
 import com.syphan.financial.app.provider.mysql.model.ReportModel
 import com.syphan.financial.app.provider.mysql.repository.ReportRepository
+import com.syphan.financial.app.util.PathConstants
 import com.syphan.financial.domain.entity.ReportFileEntity
 import com.syphan.financial.domain.entity.TransactionEntity
 import com.syphan.financial.domain.usecase.CreateReportFileUsecase
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
@@ -15,27 +17,35 @@ import java.util.UUID
 @Service
 class CreateReportFileUsecaseImpl(
     private val reportRepository: ReportRepository,
-    @Value("\${report.storage.path:/tmp/reports}")
+    @Value("\${report.storage.path}")
     private val reportStoragePath: String,
 ) : CreateReportFileUsecase {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     override fun execute(transactions: List<TransactionEntity>) {
+        logger.info("Generating report file for ${transactions.size} transactions")
         val file = generateReportFile(transactions)
 
-        reportRepository.save(
-            ReportModel(
-                filePath = file.filePath,
-                fileName = file.fileName,
-                fileType = file.fileType,
-                periodStart = file.periodStart,
-                periodEnd = file.periodEnd,
-            ),
-        )
+        logger.info("Saving report file metadata to database")
+        reportRepository
+            .save(
+                ReportModel(
+                    id = file.id,
+                    filePath = file.filePath,
+                    fileName = file.fileName,
+                    fileType = file.fileType,
+                    fileSize = file.fileSize,
+                    periodStart = file.periodStart,
+                    periodEnd = file.periodEnd,
+                ),
+            ).also { logger.info("Report file metadata saved with id ${it.id}") }
     }
 
     fun generateReportFile(transactions: List<TransactionEntity>): ReportFileEntity {
         if (transactions.isEmpty()) throw IllegalArgumentException("No transactions to report")
 
-        val fileName = "report_${UUID.randomUUID()}.csv"
+        val fileId = UUID.randomUUID()
+        val fileName = "report_$fileId.csv"
         val filePath = Paths.get(reportStoragePath, fileName).toString()
         Files.createDirectories(Paths.get(reportStoragePath))
         File(filePath).bufferedWriter().use { out ->
@@ -45,9 +55,11 @@ class CreateReportFileUsecaseImpl(
             }
         }
         return ReportFileEntity(
-            filePath = filePath,
+            id = fileId,
+            filePath = "${PathConstants.REPORTS.FILES}/$fileName",
             fileName = fileName,
             fileType = "csv",
+            fileSize = File(filePath).length(),
             periodStart = transactions.minOf { it.date },
             periodEnd = transactions.maxOf { it.date },
         )
