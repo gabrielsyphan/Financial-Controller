@@ -1,0 +1,18 @@
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.main-bg {
+    position: relative;
+    z-index: 1;
+}
+
+.main-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url('./../img/bg.jpg') center/cover no-repeat !important;
+    opacity: 0.2;
+    z-index: -1;
+    pointer-events: none;
+}

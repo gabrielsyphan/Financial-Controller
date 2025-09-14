@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+    <div class="main-bg min-h-screen flex flex-col">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <section class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Bem-vindo ao Mance</h2>
+                <p class="text-gray-600 text-lg">Sua plataforma de controle financeiro eficiente e intuitiva.</p>
+            </section>
+
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow flex flex-col items-center">
+                    <i data-lucide="wallet" class="w-10 h-10 text-blue-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Controle suas finanças</h3>
+                    <p class="text-gray-600">Gerencie receitas, despesas e tenha uma visão clara do seu orçamento.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow flex flex-col items-center">
+                    <i data-lucide="target" class="w-10 h-10 text-green-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Planeje seus objetivos</h3>
+                    <p class="text-gray-600">Defina metas financeiras e acompanhe seu progresso de forma simples.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow flex flex-col items-center">
+                    <i data-lucide="bar-chart-3" class="w-10 h-10 text-purple-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Relatórios detalhados</h3>
+                    <p class="text-gray-600">Visualize relatórios e gráficos para tomar melhores decisões.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer class="bg-gray-800 text-white py-4">
+            <div class="container mx-auto px-4 text-center">
+                <p>&copy; 2025 Mance. Todos os direitos reservados.</p>
+            </div>
+        </footer>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+
+        (function() {
+
+        })();
+    </script>
+    </body>
+    </html>

@@ -4,11 +4,19 @@ import com.syphan.financial.app.provider.mysql.model.toTransactionEntity
 import com.syphan.financial.app.provider.mysql.repository.TransactionRepository
 import com.syphan.financial.domain.entity.TransactionEntity
 import com.syphan.financial.domain.usecase.FindAllTransactionsUseCase
-import org.springframework.stereotype.Service
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
-@Service
+@Component
 class FindAllTransactionsUseCaseImpl(
     private val transactionRepository: TransactionRepository,
 ) : FindAllTransactionsUseCase {
-    override fun execute(): List<TransactionEntity> = transactionRepository.findAll().map { it.toTransactionEntity() }
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
+    override fun execute(): List<TransactionEntity> {
+        logger.info("Finding all transactions")
+        return transactionRepository.findAll().map { it.toTransactionEntity() }.also {
+            logger.info("Found ${it.size} transactions")
+        }
+    }
 }

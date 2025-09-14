@@ -1,0 +1,11 @@
+package com.syphan.financial.app.provider.mysql.repository
+
+import com.syphan.financial.app.provider.mysql.model.NotificationModel
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
+import java.util.UUID
+
+@Repository
+interface NotificationRepository : JpaRepository<NotificationModel, UUID> {
+    fun deleteByIdIn(notificationIds: List<UUID>)
+}

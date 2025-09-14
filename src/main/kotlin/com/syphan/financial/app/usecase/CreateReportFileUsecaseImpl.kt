@@ -2,23 +2,26 @@ package com.syphan.financial.app.usecase
 
 import com.syphan.financial.app.provider.mysql.model.ReportModel
 import com.syphan.financial.app.provider.mysql.repository.ReportRepository
-import com.syphan.financial.app.util.PathConstants
+import com.syphan.financial.app.util.ApiPathConstants
+import com.syphan.financial.domain.command.CreateNotificationCommand
 import com.syphan.financial.domain.entity.ReportFileEntity
 import com.syphan.financial.domain.entity.TransactionEntity
+import com.syphan.financial.domain.usecase.CreateNotificationUseCase
 import com.syphan.financial.domain.usecase.CreateReportFileUsecase
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.UUID
 
-@Service
+@Component
 class CreateReportFileUsecaseImpl(
     private val reportRepository: ReportRepository,
     @Value("\${report.storage.path}")
     private val reportStoragePath: String,
+    private val createNotificationUseCase: CreateNotificationUseCase,
 ) : CreateReportFileUsecase {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -39,6 +42,13 @@ class CreateReportFileUsecaseImpl(
                     periodEnd = file.periodEnd,
                 ),
             ).also { logger.info("Report file metadata saved with id ${it.id}") }
+        createNotificationUseCase.execute(
+            CreateNotificationCommand(
+                title = "Report Generated",
+                message = "Your report file ${file.fileName} is ready for download.",
+                link = file.filePath,
+            ),
+        )
     }
 
     fun generateReportFile(transactions: List<TransactionEntity>): ReportFileEntity {
@@ -56,7 +66,7 @@ class CreateReportFileUsecaseImpl(
         }
         return ReportFileEntity(
             id = fileId,
-            filePath = "${PathConstants.REPORTS.FILES}/$fileName",
+            filePath = "${ApiPathConstants.REPORTS.FILES}/$fileName",
             fileName = fileName,
             fileType = "csv",
             fileSize = File(filePath).length(),

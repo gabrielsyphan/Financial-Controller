@@ -1,0 +1,160 @@
+<header th:fragment="navbar" class="bg-white shadow mb-12">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">Mance</h1>
+        <nav>
+            <a href="/" class="text-gray-600 hover:text-gray-800 mx-2">Início</a>
+            <a href="/finances" class="text-gray-600 hover:text-gray-800 mx-2">Finanças</a>
+            <button id="notification-btn" class="relative mx-2 align-middle" aria-label="Notifications">
+                <i data-lucide="bell" class="w-6 h-6 text-gray-600 hover:text-gray-800"></i>
+                <span class="notification-alert-circle absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500" style="display: none;"></span>
+
+                <button id="notification-menu" class="hidden absolute right-0 mt-8 mr-4 w-80 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-y-auto">
+                    <div class="p-4 border-b font-semibold text-gray-700">Notifications</div>
+                    <span id="remove-selected-btn" class="absolute top-4 right-4 p-1 rounded hover:bg-gray-100 cursor-pointer" aria-label="Remover notificações" onclick="removeNotifications()">
+                        <i data-lucide="trash-2" class="w-5 h-5 text-red-500"></i>
+                    </span>
+                    <ul class="notification-list" style="max-height: 24rem;"></ul>
+                </button>
+            </button>
+        </nav>
+    </div>
+
+    <div id="notification-toast" class="fixed bottom-6 right-6 z-50 bg-white border border-gray-200 shadow-lg rounded px-4 py-3 text-gray-800 flex items-center space-x-2 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <i data-lucide="bell" class="w-5 h-5 text-blue-500"></i>
+        <span id="notification-toast-message">You have a new notification!</span>
+    </div>
+
+    <audio id="notification-sound" src="/sounds/notification.mp3" preload="auto"></audio>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            let canPlaySound = false;
+            window.addEventListener('click', () => { canPlaySound = true; }, { once: true });
+            window.addEventListener('keydown', () => { canPlaySound = true; }, { once: true });
+
+
+            const btn = document.getElementById('notification-btn');
+            const menu = document.getElementById('notification-menu');
+            // Corrija: selecione o UL dentro do menu
+            const notificationList = menu.querySelector('.notification-list');
+            const toast = document.getElementById('notification-toast');
+            const toastMsg = document.getElementById('notification-toast-message');
+            const removeBtn = document.getElementById('remove-selected-btn');
+
+            let notificationsLoaded = false;
+
+            // Toggle notification menu only if click is outside both button and menu
+            document.addEventListener('click', function(event) {
+                if (btn.contains(event.target) || menu.contains(event.target)) {
+                    // Se clicou no botão, abre/fecha o menu
+                    if (btn.contains(event.target)) {
+                        menu.classList.toggle('hidden');
+                        // Carrega notificações só na primeira abertura
+                        if (!menu.classList.contains('hidden') && !notificationsLoaded) {
+                            fetch('/api/v1/notifications/all')
+                                .then(response => response.json())
+                                .then(notifications => {
+                                    if (Array.isArray(notifications)) {
+                                        notifications.forEach(data => renderNotification(data, false));
+                                        updateIndicator();
+                                        lucide.createIcons();
+                                        notificationsLoaded = true;
+                                    }
+                                });
+                        }
+                        updateIndicator();
+                        lucide.createIcons();
+                    }
+                } else {
+                    menu.classList.add('hidden');
+                }
+            });
+
+            // SSE for new notifications
+            const eventSource = new EventSource('/api/v1/notifications/subscribe');
+            eventSource.onmessage = handleSSE;
+            eventSource.addEventListener('notification', handleSSE);
+            eventSource.onerror = function(error) {
+                console.log('Connection error:', error);
+                eventSource.close();
+            };
+
+            function handleSSE(event) {
+                const data = JSON.parse(event.data);
+                renderNotification(data, true);
+                showToast('You have a new notification!');
+                updateIndicator();
+                lucide.createIcons();
+                if (canPlaySound) {
+                    document.getElementById('notification-sound').play().catch(() => {});
+                }
+            }
+
+            // Render notification (prepend if new, append if initial load)
+            function renderNotification(data, prepend = false) {
+                if (!data) return;
+                const icon = data.isRead ? 'mail-open' : 'mail';
+                const iconColor = data.isRead ? 'text-gray-400' : 'text-blue-500';
+                const li = document.createElement('li');
+                li.className = 'flex items-start px-4 py-3 hover:bg-gray-50';
+                li.innerHTML = `
+                    <i data-lucide="${icon}" class="w-5 h-5 ${iconColor} mt-1 mr-3"></i>
+                    <div class="w-full text-left ml-2 border-b-2 border-gray-100">
+                        <div class="text-base text-gray-800">${data.title}</div>
+                        <div class="text-sm text-gray-600">${data.message}</div>
+                        <div class="text-xs text-right text-gray-400 mb-2">${data.createdAt.replace('T', ' ').slice(0, 16)}</div>
+                    </div>
+                `;
+                if (prepend) {
+                    notificationList.prepend(li);
+                } else {
+                    notificationList.appendChild(li);
+                }
+            }
+
+            // Show toast notification
+            function showToast(message) {
+                toastMsg.textContent = message;
+                toast.classList.remove('opacity-0', 'pointer-events-none');
+                toast.classList.add('opacity-100');
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'pointer-events-none');
+                    toast.classList.remove('opacity-100');
+                }, 5000);
+            }
+        });
+
+        // Delete all notifications
+        function removeNotifications() {
+            fetch('/api/v1/notifications/remove', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ notificationIds: [] })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('notification-menu').querySelector('.notification-list').innerHTML = '';
+                        updateIndicator();
+                        swal("Success", "All notifications removed.", "success");
+                    } else {
+                        swal("Error", "Failed to remove notifications.", "error");
+                    }
+                });
+        }
+
+        // Update notification indicator (show if any unread)
+        function updateIndicator() {
+            const notificationList = document.getElementById('notification-menu').querySelector('.notification-list');
+            const notificationIndicator = document.querySelector('.notification-alert-circle');
+            const hasUnread = Array.from(notificationList.children).some(li =>
+                li.querySelector('i[data-lucide="mail"]')
+            );
+            notificationIndicator.style.display = hasUnread ? 'block' : 'none';
+        }
+    </script>
+</header>

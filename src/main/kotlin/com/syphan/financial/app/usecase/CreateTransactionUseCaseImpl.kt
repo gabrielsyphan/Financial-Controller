@@ -8,10 +8,10 @@ import com.syphan.financial.domain.command.CreateTransactionCommand
 import com.syphan.financial.domain.entity.TransactionEntity
 import com.syphan.financial.domain.usecase.CreateTransactionUseCase
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import kotlin.jvm.optionals.getOrNull
 
-@Service
+@Component
 class CreateTransactionUseCaseImpl(
     private val transactionRepository: TransactionRepository,
     private val cardRepository: CardRepository,

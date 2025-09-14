@@ -2,11 +2,11 @@ package com.syphan.financial.app.usecase
 
 import com.syphan.financial.domain.usecase.RetrieveFileByNameUseCase
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component
 class RetrieveFileByNameUseCaseImpl(
-    @Value("\${report.storage.path}")
+    @param:Value("\${report.storage.path}")
     private val reportStoragePath: String,
 ) : RetrieveFileByNameUseCase {
     override fun execute(fileName: String): ByteArray {

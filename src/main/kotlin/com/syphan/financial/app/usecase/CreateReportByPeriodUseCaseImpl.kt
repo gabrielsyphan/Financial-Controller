@@ -5,9 +5,9 @@ import com.syphan.financial.app.provider.mysql.model.toTransactionEntity
 import com.syphan.financial.app.provider.mysql.repository.TransactionRepository
 import com.syphan.financial.domain.command.CreateReportByPeriodCommand
 import com.syphan.financial.domain.usecase.CreateReportByPeriodUseCase
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component
 class CreateReportByPeriodUseCaseImpl(
     private val transactionRepository: TransactionRepository,
     private val createReportProducer: CreateReportProducer,

@@ -7,9 +7,9 @@ import com.syphan.financial.domain.command.CreateCardCommand
 import com.syphan.financial.domain.entity.CardEntity
 import com.syphan.financial.domain.usecase.CreateCardUseCase
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component
 class CreateCardUseCaseImpl(
     private val cardRepository: CardRepository,
 ) : CreateCardUseCase {

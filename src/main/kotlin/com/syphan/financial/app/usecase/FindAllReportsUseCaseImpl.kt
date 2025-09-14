@@ -5,9 +5,9 @@ import com.syphan.financial.app.provider.mysql.repository.ReportRepository
 import com.syphan.financial.domain.entity.ReportEntity
 import com.syphan.financial.domain.usecase.FindAllReportsUseCase
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component
 class FindAllReportsUseCaseImpl(
     private val reportRepository: ReportRepository,
 ) : FindAllReportsUseCase {
