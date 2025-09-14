@@ -1,9 +1,9 @@
-<header th:fragment="navbar" class="bg-white shadow mb-12">
+<header th:fragment="navbar" class="bg-white shadow mb-8">
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-gray-800">Mance</h1>
         <nav>
-            <a href="/" class="text-gray-600 hover:text-gray-800 mx-2">Início</a>
-            <a href="/finances" class="text-gray-600 hover:text-gray-800 mx-2">Finanças</a>
+            <a href="/" class="text-gray-600 hover:text-gray-800 mx-2">Home</a>
+            <a href="/finances" class="text-gray-600 hover:text-gray-800 mx-2">Finances</a>
             <button id="notification-btn" class="relative mx-2 align-middle" aria-label="Notifications">
                 <i data-lucide="bell" class="w-6 h-6 text-gray-600 hover:text-gray-800"></i>
                 <span class="notification-alert-circle absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500" style="display: none;"></span>
@@ -25,6 +25,7 @@
     </div>
 
     <audio id="notification-sound" src="/sounds/notification.mp3" preload="auto"></audio>
+
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -100,14 +101,27 @@
                 const iconColor = data.isRead ? 'text-gray-400' : 'text-blue-500';
                 const li = document.createElement('li');
                 li.className = 'flex items-start px-4 py-3 hover:bg-gray-50';
-                li.innerHTML = `
+                let content = `
                     <i data-lucide="${icon}" class="w-5 h-5 ${iconColor} mt-1 mr-3"></i>
                     <div class="w-full text-left ml-2 border-b-2 border-gray-100">
                         <div class="text-base text-gray-800">${data.title}</div>
                         <div class="text-sm text-gray-600">${data.message}</div>
                         <div class="text-xs text-right text-gray-400 mb-2">${data.createdAt.replace('T', ' ').slice(0, 16)}</div>
+                        ${data.link ? `<div class="mt-2 flex items-center">
+                            <button class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200 transition mb-2">
+                                Open link <i data-lucide="external-link" class="w-4 h-4 ml-1"></i>
+                            </button>
+                        </div>` : ''}
                     </div>
                 `;
+                if (data.link) {
+                    li.classList.add('cursor-pointer', 'hover:bg-blue-50');
+                    li.onclick = function(e) {
+                        e.stopPropagation();
+                        window.open(data.link, '_blank');
+                    }
+                }
+                li.innerHTML = content;
                 if (prepend) {
                     notificationList.prepend(li);
                 } else {

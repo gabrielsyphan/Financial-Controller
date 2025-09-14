@@ -20,6 +20,10 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     topic:
       create-report: create-report
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
 server:
   port: 2984
 report:
