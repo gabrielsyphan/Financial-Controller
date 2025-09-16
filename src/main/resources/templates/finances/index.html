@@ -3,84 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mance</title>
+    <title>Mance - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
+<body class="bg-[#f5f5f7] text-[#2b2b2b] font-sans">
+<div class="flex h-screen">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-<div class="main-bg min-h-screen flex flex-col">
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <main class="flex-1 overflow-y-auto">
+        <div th:replace="~{fragments/header :: header}"></div>
 
-    <main class="flex container mx-auto px-4 py-4 gap-6 mb-16">
-        <div class="overflow-x-auto">
-            <h3 class="text-2xl ftw-300 mb-4">My Transactions</h3>
-            <button id="open-report-modal" class="text-gray-600 hover:text-gray-800 mx-2 px-2 py-1 rounded border border-gray-200 bg-white transition hover:bg-gray-100" type="button">
-                <i data-lucide="download" class="inline w-5 h-5 mr-1"></i>
-                Generate Report
-            </button>
-            <table class="styled-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Description</th>
-                        <th>Date</th>
-                        <th>Card</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="transaction : ${transactions}">
-                        <td th:text="${transaction.id}"></td>
-                        <td th:text="${transaction.transactionType}"></td>
-                        <td th:text="${transaction.amount}"></td>
-                        <td th:text="${transaction.description}"></td>
-                        <td th:text="${transaction.date}"></td>
-                        <td th:text="${transaction.card?.name}"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="width: 400px; display: revert;">
-            <h3 class="text-2xl ftw-300 mb-4">My Cards</h3>
-            <div th:each="card : ${cards}" class="mb-2 bg-gradient-to-r from-gray-700 to-gray-900 rounded-xl shadow-lg p-6 text-white flex flex-col justify-between">
-                <div>
-                    <div class="text-lg font-semibold" th:text="${card.name}"></div>
-                    <div class="text-sm mt-1">Type: <span th:text="${card.type.friendlyName}"></span></div>
+        <!-- Cards -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-3 p-3">
+            <div class="bg-white p-6 rounded-2xl my-border">
+                <p class="text-sm flex items-center gap-2 mb-2">
+                    <i data-lucide="wallet" class="w-5 h-5 text-[#6a5acb]"></i>
+                    Saldo Total
+                </p>
+                <h2 class="text-2xl font-bold">R$ <span th:text="${totalFunds}"></span></h2>
+                <span class="text-gray-500 text-sm">Entradas - Saídas</span>
+            </div>
+            <div class="bg-white p-6 rounded-2xl my-border">
+                <p class="text-sm flex items-center gap-2 mb-2">
+                    <i data-lucide="dollar-sign" class="w-5 h-5 text-[#6a5acb]"></i>
+                    Total Transacionado
+                </p>
+                <h2 class="text-2xl font-bold">R$ <span th:text="${totalTransactionated}"></span></h2>
+                <span class="text-gray-500 text-sm">Entradas + Saídas</span>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl my-border">
+                <p class="text-sm flex items-center gap-2 mb-2">
+                    <i data-lucide="arrow-down-circle" class="w-5 h-5 text-[#6a5acb]"></i>
+                    Entradas
+                </p>
+                <h2 class="text-2xl font-bold">R$ <span th:text="${totalPositive}"></span></h2>
+                <span class="text-green-600 text-sm"><span th:text="${positiveChange}"></span>%</span>
+            </div>
+            <div class="bg-white p-6 rounded-2xl my-border">
+                <p class="text-sm flex items-center gap-2 mb-2">
+                    <i data-lucide="arrow-up-circle" class="w-5 h-5 text-[#6a5acb]"></i>
+                    Saídas
+                </p>
+                <h2 class="text-2xl font-bold">R$ <span th:text="${totalNegative}"></span></h2>
+                <span class="text-red-600 text-sm"><span th:text="${negativeChange}"></span>%</span>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-4 gap-3 p-3">
+            <div class="lg:col-span-3 bg-white rounded-2xl my-border">
+                <div class="flex justify-between items-center p-6">
+                    <h3 class="text-sm flex items-center gap-2 mb-2">
+                        <i data-lucide="activity" class="w-5 h-5 text-[#6a5acb]"></i>
+                        Atividades Recentes
+                    </h3>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1 border rounded-lg">Filtrar</button>
+                        <button class="px-3 py-1 border rounded-lg">Ordenar</button>
+                        <button id="open-report-modal" class="px-3 py-1 border rounded-lg" type="button">
+                            <i data-lucide="download" class="inline w-5 h-5 mr-1"></i>
+                            Relatório
+                        </button>
+                    </div>
                 </div>
-                <div class="mt-6">
-                    <div class="text-xs">Limit</div>
-                    <div class="text-2xl font-bold">R$ <span th:text="${card.limitAmount}"></span></div>
+                <table class="w-full text-left pb-6">
+                    <thead>
+                        <tr style="border-top: 1px solid #c7c7c787; border-bottom: 1px solid #c7c7c787;">
+                            <th class="py-2 px-4 font-normal background-gray">Tipo</th>
+                            <th class="py-2 px-4 font-normal background-gray">Valor</th>
+                            <th class="py-2 px-4 font-normal background-gray">Descrição</th>
+                            <th class="py-2 px-4 font-normal background-gray">Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b" th:each="transaction : ${transactions}">
+                        <td class="py-6 px-4" th:text="${transaction.transactionType.portugueseTranslation}"></td>
+                        <td class="py-6 px-4" th:text="${transaction.amount}"></td>
+                        <td class="py-6 px-4" th:text="${transaction.description}"></td>
+                        <td class="py-6 px-4" th:text="${#temporals.format(transaction.date, 'dd/MM/yyyy')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="lg:col-span-1 bg-white rounded-2xl my-border p-6 pb-16">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-5 h-5 text-[#6a5acb]"></i>
+                        Programados
+                    </h3>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1 border rounded-lg">Todos</button>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center mt-6">
-                    <span class="text-xs" th:text="${card.isActive} ? 'Active' : 'Inactive'"></span>
-                    <span class="text-xs">Created: <span th:text="${card.createdAt}"></span></span>
+                <div class="relative h-full mt-2">
+                    <div class="absolute inset-0 overflow-y-auto">
+                        <ul class="space-y-2">
+                            <li class="p-4 border rounded-lg flex items-center gap-3">
+                                <i data-lucide="dollar-sign" class="w-5 h-5 text-green-600"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">07/10/2025</p>
+                                    <p class="font-semibold">Salário</p>
+                                    <p class="text-green-600">R$ 1.518,00 <span class="text-xs ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded">Entrada</span></p>
+                                </div>
+                            </li>
+                            <li class="p-4 border rounded-lg flex items-center gap-3">
+                                <i data-lucide="home" class="w-5 h-5 text-red-600"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">14/10/2025</p>
+                                    <p class="font-semibold">Parcela da Casa</p>
+                                    <p class="text-red-600">R$ 950,00 <span class="text-xs ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded">Saída</span></p>
+                                </div>
+                            </li>
+                            <li class="p-4 border rounded-lg flex items-center gap-3">
+                                <i data-lucide="credit-card" class="w-5 h-5 text-red-600"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">27/10/2025</p>
+                                    <p class="font-semibold">Fatura Cartão</p>
+                                    <p class="text-red-600">R$ 320,00 <span class="text-xs ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded">Saída</span></p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </section>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
+        <section class="grid grid-cols-1 lg:grid-cols-4 gap-3 p-3">
+            <div class="lg:col-span-2 bg-white rounded-2xl my-border p-6">
+                <h3 class="text-sm flex items-center gap-2 mb-2">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5 text-[#6a5acb]"></i>
+                    Fluxo de Caixa
+                </h3>
+                <div class="h-64 flex items-center justify-center text-gray-400">
+                    [Gráfico Entradas x Saídas]
+                </div>
+            </div>
+            <div class="lg:col-span-2 bg-white rounded-2xl my-border p-6">
+                <h3 class="text-sm flex items-center gap-2 mb-2">
+                    <i data-lucide="pie-chart" class="w-5 h-5 text-[#6a5acb]"></i>
+                    Categorias
+                </h3>
+                <div class="h-64 flex items-center justify-center text-gray-400">
+                    [Gráfico de Categorias]
+                </div>
+            </div>
+        </section>
+    </main>
 </div>
 
 <div id="report-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <button id="close-report-modal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
-            <i data-lucide="x" class="w-5 h-5"></i>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative border border-gray-200">
+        <button id="close-report-modal" class="absolute top-4 right-4 text-gray-400 hover:text-[#6a5acb] transition-colors">
+            <i data-lucide="x" class="w-6 h-6"></i>
         </button>
-        <h2 class="text-lg font-semibold mb-4 text-gray-800">Download Report</h2>
-        <form id="report-form" class="space-y-4">
+        <h2 class="text-xl font-semibold mb-6 text-[#2b2b2b] text-center">Baixar Relatório</h2>
+        <form id="report-form" class="space-y-5">
             <div>
-                <label for="start-date" class="block text-sm font-medium text-gray-700">Data inicial</label>
-                <input type="date" id="start-date" name="startDate" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"/>
+                <label for="start-date" class="block text-sm font-semibold text-gray-700 mb-1">Data inicial</label>
+                <input type="date" id="start-date" name="startDate" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm px-3 py-2 focus:ring-[#6a5acb] focus:border-[#6a5acb] transition"/>
             </div>
             <div>
-                <label for="end-date" class="block text-sm font-medium text-gray-700">Data final</label>
-                <input type="date" id="end-date" name="endDate" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"/>
+                <label for="end-date" class="block text-sm font-semibold text-gray-700 mb-1">Data final</label>
+                <input type="date" id="end-date" name="endDate" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm px-3 py-2 focus:ring-[#6a5acb] focus:border-[#6a5acb] transition"/>
             </div>
-            <button type="submit" class="w-full bg-gray-800 text-white py-2 rounded hover:bg-blue-700 transition">Baixar</button>
+            <button type="submit" class="w-full bg-[#6a5acb] text-white py-2 rounded-lg font-semibold hover:bg-[#5741a9] transition">Baixar</button>
         </form>
     </div>
 </div>
@@ -119,11 +207,12 @@
                 body: JSON.stringify({ startDate, endDate })
             })
             .then(async response => {
-              swal("We're on it!", "Your report is being generated and will be available for download shortly.", "info");
+              swal("Quase lá!", "Seu relatório está sendo gerado e estará disponível para download em breve.", "info");
             })
             .catch(() => {
-                swal("Erro", "Failed to generate report. Please try again later.", "error");
+                swal("Erro", "Ocorreu um erro ao gerar o relatório. Tente novamente.", "error");
             });
+            reportModal.classList.add('hidden');
         });
     });
 </script>

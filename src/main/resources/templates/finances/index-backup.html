@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="main-bg min-h-screen flex flex-col">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <section class="balance-section py-8 px-4 mb-8 relative">
+        <div class="container mx-auto flex flex-col md:flex-row gap-4 justify-center items-center">
+            <div class="card backdrop-blur rounded-xl p-6 flex-1 min-w-[180px] text-white shadow flex flex-col items-center">
+                <div class="text-xs uppercase mb-1">Saldo do mês</div>
+                <div class="text-2xl font-bold" th:text="${monthBalance}">R$ 0,00</div>
+            </div>
+            <div class="card backdrop-blur rounded-xl p-6 flex-1 min-w-[180px] text-white shadow flex flex-col items-center">
+                <div class="text-xs uppercase mb-1">Entradas</div>
+                <div class="text-2xl font-bold text-green-300" th:text="${totalIncome}">R$ 0,00</div>
+            </div>
+            <div class="card backdrop-blur rounded-xl p-6 flex-1 min-w-[180px] text-white shadow flex flex-col items-center">
+                <div class="text-xs uppercase mb-1">Saídas</div>
+                <div class="text-2xl font-bold text-red-300" th:text="${totalExpense}">R$ 0,00</div>
+            </div>
+        </div>
+    </section>
+
+    <main class="flex container mx-auto px-4 py-4 gap-6 mb-16">
+        <div class="w-100 overflow-x-auto">
+            <h3 class="text-2xl ftw-300 mb-4">My Transactions</h3>
+            <button id="open-report-modal" class="text-gray-600 hover:text-gray-800 mb-2 mx-2 px-2 py-1 rounded border border-gray-200 bg-white transition hover:bg-gray-100" type="button">
+                <i data-lucide="download" class="inline w-5 h-5 mr-1"></i>
+                Generate Report
+            </button>
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th class="tr-first">Type</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                        <th class="tr-last">Card</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="transaction : ${transactions}">
+                        <td th:text="${transaction.transactionType}"></td>
+                        <td th:text="${transaction.amount}"></td>
+                        <td th:text="${transaction.description}"></td>
+                        <td th:text="${transaction.date}"></td>
+                        <td th:text="${transaction.card?.name}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="width: 400px; display: revert;">
+            <h3 class="text-2xl ftw-300 mb-4">My Cards</h3>
+            <div th:each="card : ${cards}" class="mb-2 bg-gradient-to-r from-gray-700 to-gray-900 rounded-xl shadow-lg p-6 text-white flex flex-col justify-between">
+                <div>
+                    <div class="text-lg font-semibold" th:text="${card.name}"></div>
+                    <div class="text-sm mt-1">Type: <span th:text="${card.type.friendlyName}"></span></div>
+                </div>
+                <div class="mt-6">
+                    <div class="text-xs">Limit</div>
+                    <div class="text-2xl font-bold">R$ <span th:text="${card.limitAmount}"></span></div>
+                </div>
+                <div class="flex justify-between items-center mt-6">
+                    <span class="text-xs" th:text="${card.isActive} ? 'Active' : 'Inactive'"></span>
+                    <span class="text-xs">Created: <span th:text="${card.createdAt}"></span></span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</div>
+
+<div id="report-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+        <button id="close-report-modal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <h2 class="text-lg font-semibold mb-4 text-gray-800">Download Report</h2>
+        <form id="report-form" class="space-y-4">
+            <div>
+                <label for="start-date" class="block text-sm font-medium text-gray-700">Data inicial</label>
+                <input type="date" id="start-date" name="startDate" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"/>
+            </div>
+            <div>
+                <label for="end-date" class="block text-sm font-medium text-gray-700">Data final</label>
+                <input type="date" id="end-date" name="endDate" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"/>
+            </div>
+            <button type="submit" class="w-full bg-gray-800 text-white py-2 rounded hover:bg-blue-700 transition">Baixar</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Modal de relatório ---
+        const openReportModalBtn = document.getElementById('open-report-modal');
+        const reportModal = document.getElementById('report-modal');
+        const closeReportModalBtn = document.getElementById('close-report-modal');
+        const reportForm = document.getElementById('report-form');
+
+        openReportModalBtn.addEventListener('click', function() {
+            reportModal.classList.remove('hidden');
+            lucide.createIcons();
+        });
+        closeReportModalBtn.addEventListener('click', function() {
+            reportModal.classList.add('hidden');
+        });
+        reportModal.addEventListener('click', function(e) {
+            if (e.target === reportModal) reportModal.classList.add('hidden');
+        });
+
+        reportForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            if (!startDate || !endDate) return;
+
+            fetch('/api/v1/reports/create-by-period', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ startDate, endDate })
+            })
+            .then(async response => {
+              swal("We're on it!", "Your report is being generated and will be available for download shortly.", "info");
+            })
+            .catch(() => {
+                swal("Erro", "Failed to generate report. Please try again later.", "error");
+            });
+        });
+    });
+</script>
+</body>
+</html>

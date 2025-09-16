@@ -2,56 +2,14 @@ body {
     font-family: 'Poppins', sans-serif;
 }
 
-.main-bg {
-    position: relative;
-    z-index: 1;
+.my-border {
+    border: 1px solid #ededed;
 }
 
-.main-bg::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: url('./../img/bg.jpg') center/cover no-repeat !important;
-    opacity: 0.2;
-    z-index: -1;
-    pointer-events: none;
+.c-white {
+    color: white;
 }
 
-.styled-table {
-    border-collapse: collapse;
-    font-size: 0.9em;
-    font-family: sans-serif;
-    min-width: 400px;
-}
-
-.styled-table thead tr {
-    text-align: left;
-    font-weight: 400;
-    border-bottom: 1px solid #dddddd;
-}
-
-.styled-table th,
-.styled-table td {
-    padding: 12px 15px;
-}
-
-.styled-table tbody tr {
-    border-bottom: 1px solid #dddddd;
-}
-
-.styled-table tbody tr:nth-of-type(even) {
-    background-color: #f3f3f3;
-}
-
-.styled-table tbody tr:last-of-type {
-    border-bottom: 2px solid #18202f;
-}
-
-.styled-table tbody tr.active-row {
-    font-weight: bold;
-    color: #18202f;
-}
-
-.ftw-300 {
-    font-weight: 300;
+.background-gray {
+    background: #eeeeeec2;
 }
