@@ -5,8 +5,9 @@ object ApiPathConstants {
 
     object TRANSACTIONS {
         const val BASE = "$API/transactions"
-        const val CRATE = "$BASE/create"
+        const val CREATE = "$BASE/create"
         const val ALL = "$BASE/all"
+        const val REMOVE = "$BASE/remove"
     }
 
     object CARDS {

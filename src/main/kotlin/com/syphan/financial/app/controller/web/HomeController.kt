@@ -5,8 +5,8 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 
 @Controller
-@RequestMapping(WebPathConstants.FINANCES)
+@RequestMapping(WebPathConstants.HOME)
 class HomeController {
     @RequestMapping
-    fun index(): String = "finances/index"
+    fun index(): String = "index"
 }

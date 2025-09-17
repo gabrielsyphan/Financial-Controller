@@ -1,11 +1,7 @@
 <aside th:fragment="sidebar" class="w-64 bg-[#6a5acb] text-white flex flex-col">
-    <div class="p-6 text-2xl font-bold">Mance</div>
+    <div class="p-6 text-2xl font-bold" onclick="window.location='/'">Mance</div>
     <nav class="flex-1 px-4 space-y-3">
         <a href="#" class="block py-2 px-3 rounded-lg bg-[#8573e0] flex items-center gap-2">
-            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-            Dashboard
-        </a>
-        <a href="#" class="block py-2 px-3 rounded-lg hover:bg-[#8573e0] flex items-center gap-2">
             <i data-lucide="dollar-sign" class="w-5 h-5"></i>
             Transações
         </a>
@@ -28,7 +24,7 @@
 
     <div id="notification-toast" class="fixed bottom-6 right-6 z-50 bg-white border border-gray-200 shadow-lg rounded px-4 py-3 text-gray-800 flex items-center space-x-2 transition-opacity duration-300 opacity-0 pointer-events-none">
         <i data-lucide="bell" class="w-5 h-5 text-blue-500"></i>
-        <span id="notification-toast-message">You have a new notification!</span>
+        <span id="notification-toast-message">Você recebeu uma nova notificação!</span>
     </div>
 
     <audio id="notification-sound" src="/sounds/notification.mp3" preload="auto"></audio>
@@ -93,7 +89,7 @@
             function handleSSE(event) {
                 const data = JSON.parse(event.data);
                 renderNotification(data, true);
-                showToast('You have a new notification!');
+                showToast('Você recebeu uma nova notificação!');
                 updateIndicator();
                 lucide.createIcons();
                 if (canPlaySound) {

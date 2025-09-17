@@ -1,6 +1,7 @@
 package com.syphan.financial.app.controller.web
 
-import com.syphan.financial.domain.usecase.FindAllCardsUseCase
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.syphan.financial.domain.usecase.FindAllTransactionsUseCase
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -15,13 +16,17 @@ class FinancesController(
 ) {
     @GetMapping
     fun index(model: Model): String {
-        val transactions = findAllTransactionsUseCase.execute()
+        val transactions = findAllTransactionsUseCase.execute().sortedBy { it.date }
         val totalTransactionated = transactions.sumOf { it.amount }
         val totalPositive = transactions.filter { it.transactionType.isPositive }.sumOf { it.amount } // DOUBLE
         val totalNegative = transactions.filter { it.transactionType.isPositive.not() }.sumOf { it.amount }
         val positiveChange = totalPositive.multiply(BigDecimal(100)).divide(totalTransactionated, 2, java.math.RoundingMode.HALF_UP)
         val negativeChange = totalNegative.multiply(BigDecimal(100)).divide(totalTransactionated, 2, java.math.RoundingMode.HALF_UP)
 
+        val objectMapper = ObjectMapper().registerModule(JavaTimeModule())
+        val transactionsJson = objectMapper.writeValueAsString(transactions)
+
+        model.addAttribute("transactionsJson", transactionsJson)
         model.addAttribute("transactions", transactions)
         model.addAttribute("totalFunds", totalPositive - totalNegative)
         model.addAttribute("totalPositive", totalPositive)

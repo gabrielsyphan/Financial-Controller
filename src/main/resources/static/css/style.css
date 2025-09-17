@@ -13,3 +13,7 @@ body {
 .background-gray {
     background: #eeeeeec2;
 }
+
+.h-400 {
+    height: 300px;
+}
