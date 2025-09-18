@@ -1,21 +1,53 @@
 <aside th:fragment="sidebar" class="w-64 bg-[#6a5acb] text-white flex flex-col">
     <div class="p-6 text-2xl font-bold" onclick="window.location='/'">Mance</div>
     <nav class="flex-1 px-4 space-y-3">
-        <a href="#" class="block py-2 px-3 rounded-lg bg-[#8573e0] flex items-center gap-2">
+        <a href="/transactions"
+           th:classappend="${activePage} == 'transactions' ? 'bg-[#8573e0]' : 'hover:bg-[#8573e0]'"
+           class="block py-2 px-3 rounded-lg flex items-center gap-2">
             <i data-lucide="dollar-sign" class="w-5 h-5"></i>
             Transações
         </a>
-        <a href="#" class="block py-2 px-3 rounded-lg hover:bg-[#8573e0] flex items-center gap-2">
+        <a href="/cards"
+           th:classappend="${activePage} == 'cards' ? 'bg-[#8573e0]' : 'hover:bg-[#8573e0]'"
+           class="block py-2 px-3 rounded-lg flex items-center gap-2">
             <i data-lucide="credit-card" class="w-5 h-5"></i>
             Cartões
         </a>
-        <a href="#" class="block py-2 px-3 rounded-lg hover:bg-[#8573e0] flex items-center gap-2">
-            <i data-lucide="tag" class="w-5 h-5"></i>
-            Categorias
+        <a href="/schedules"
+           th:classappend="${activePage} == 'schedules' ? 'bg-[#8573e0]' : 'hover:bg-[#8573e0]'"
+           class="block py-2 px-3 rounded-lg flex items-center gap-2">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            Agendas
         </a>
-        <a href="#" class="block py-2 px-3 rounded-lg hover:bg-[#8573e0] flex items-center gap-2">
+        <a href="/investments"
+           th:classappend="${activePage} == 'investments' ? 'bg-[#8573e0]' : 'hover:bg-[#8573e0]'"
+           class="block py-2 px-3 rounded-lg flex items-center gap-2">
+            <i data-lucide="trending-up" class="w-5 h-5"></i>
+            Investimentos
+        </a>
+        <a href="/goals"
+           th:classappend="${activePage} == 'goals' ? 'bg-[#8573e0]' : 'hover:bg-[#8573e0]'"
+           class="block py-2 px-3 rounded-lg flex items-center gap-2">
+            <i data-lucide="target" class="w-5 h-5"></i>
+            Objetivos
+        </a>
+        <a href="/reports"
+           th:classappend="${activePage} == 'reports' ? 'bg-[#8573e0]' : 'hover:bg-[#8573e0]'"
+           class="block py-2 px-3 rounded-lg flex items-center gap-2">
             <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
             Relatórios
+        </a>
+        <a href="/settings"
+           th:classappend="${activePage} == 'settings' ? 'bg-[#8573e0]' : 'hover:bg-[#8573e0]'"
+           class="block py-2 px-3 rounded-lg flex items-center gap-2">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+            Configurações
+        </a>
+        <a href="/logout"
+           th:classappend="${activePage} == 'logout' ? 'bg-[#8573e0]' : 'hover:bg-[#8573e0]'"
+           class="block py-2 px-3 rounded-lg flex items-center gap-2 mt-10">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+            Sair
         </a>
     </nav>
     <div class="p-4 border-t border-[#8573e0]">

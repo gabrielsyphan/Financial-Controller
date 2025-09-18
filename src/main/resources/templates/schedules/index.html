@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mance - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-[#f5f5f7] text-[#2b2b2b] font-sans">
+<div class="flex h-screen">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <main class="flex-1 overflow-y-auto">
+        <div th:replace="~{fragments/header :: header(false)}"></div>
+
+        <!-- Thymeleaf: Pass schedules as JSON to JS -->
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            var schedules = /*[[${schedules}]]*/ [];
+            /*]]>*/
+        </script>
+
+        <div id="calendar" class="w-full h-full p-6 flex flex-col"></div>
+
+        <!-- Modal: Add Schedule -->
+        <div id="schedule-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+                <button id="close-modal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <h2 class="text-xl font-semibold mb-4">Adicionar agenda</h2>
+                <form id="schedule-form" class="space-y-3">
+                    <input type="hidden" name="date" id="schedule-date">
+                    <div>
+                        <label class="block text-sm mb-1">Título</label>
+                        <input type="text" name="title" required class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Descrição</label>
+                        <textarea name="description" class="w-full border rounded px-3 py-2"></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-sm mb-1">Início</label>
+                            <input type="time" name="startTime" class="w-full border rounded px-3 py-2">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm mb-1">Término</label>
+                            <input type="time" name="endTime" class="w-full border rounded px-3 py-2">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="isTransaction" name="isTransaction">
+                        <label for="isTransaction" class="text-sm">É uma transação?</label>
+                        <input type="number" step="0.01" min="0" name="transactionValue" id="transactionValue" placeholder="Valor" class="w-24 border rounded px-2 py-1 ml-2" style="display:none;">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="shouldRepeat" name="shouldRepeat">
+                        <label for="shouldRepeat" class="text-sm">Se repete?</label>
+                        <input type="number" min="0" name="numberOfRepetitions" id="numberOfRepetitions" placeholder="Vezes" class="w-24 border rounded px-2 py-1 ml-2" style="display:none;">
+                        <select name="repetitionType" id="repetitionType" class="border rounded px-2 py-1 ml-2" style="display:none;">
+                            <option value="">Selecione</option>
+                            <option value="EVERY_DAY">Todo dia</option>
+                            <option value="EVERY_WEEKDAY">Todo dia útil</option>
+                            <option value="EVERY_SUNDAY">Todo domingo</option>
+                            <option value="EVERY_MONDAY">Toda segunda</option>
+                            <option value="EVERY_TUESDAY">Toda terça</option>
+                            <option value="EVERY_WEDNESDAY">Toda quarta</option>
+                            <option value="EVERY_THURSDAY">Toda quinta</option>
+                            <option value="EVERY_FRIDAY">Toda sexta</option>
+                            <option value="EVERY_SATURDAY">Todo sábado</option>
+                            <option value="EVERY_WEEK">Toda semana</option>
+                            <option value="EVERY_MONTH">Todo mês</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-[#6a5acb] text-white py-2 rounded mt-2">Salvar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: View Schedule(s) -->
+        <div id="view-schedule-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+                <button id="close-view-modal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <h2 class="text-xl font-semibold mb-4">Agendas do dia</h2>
+                <div id="view-schedule-content"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script>lucide.createIcons();</script>
+<script>
+    // Calendar rendering
+    function renderCalendar() {
+        const calendar = document.getElementById('calendar');
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDayOfWeek = firstDay.getDay(); // 0 (Sun) - 6 (Sat)
+        const daysInMonth = lastDay.getDate();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        // Parse schedules and group by date (YYYY-MM-DD)
+        let scheduleMap = {};
+        if (typeof schedules === 'string') schedules = JSON.parse(schedules);
+        schedules.forEach(s => {
+            const date = s.date || (s.dateFormatted || '');
+            if (!scheduleMap[date]) scheduleMap[date] = [];
+            scheduleMap[date].push(s);
+        });
+
+        let html = ``;
+        html += `<div class='grid grid-cols-7 gap-2 text-center font-semibold text-gray-500 mb-2'>
+            <div>Domingo</div><div>Segunda</div><div>Terça</div><div>Quarta</div><div>Quinta</div><div>Sexta</div><div>Sábado</div>
+        </div>`;
+        html += `<div class='grid grid-cols-7 gap-2 flex-1'>`;
+        let day = 1;
+        for (let i = 0; i < 6 * 7; i++) { // 6 weeks max
+            if (i < startDayOfWeek || day > daysInMonth) {
+                html += `<div class='h-20 bg-transparent'></div>`;
+            } else {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                let marker = '';
+                if (scheduleMap[dateStr]) {
+                    marker = `<span class='block w-3 h-3 rounded-full bg-[#6a5acb] absolute top-2 left-2 cursor-pointer schedule-marker' data-date='${dateStr}' title='${scheduleMap[dateStr].length} agendamento(s)'></span>`;
+                }
+                html += `<div class='relative h-20'>
+                    <button class='h-20 w-full bg-white rounded shadow hover:bg-[#ececff] flex flex-col items-end p-2 cursor-pointer calendar-day' data-date='${dateStr}'>
+                        <span class='text-xs text-gray-400'>${day}</span>
+                    </button>
+                    ${marker}
+                </div>`;
+                day++;
+            }
+        }
+        html += `</div>`;
+        calendar.innerHTML = html;
+
+        // Add click listeners for add-schedule modal
+        document.querySelectorAll('.calendar-day').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Prevent opening add modal if marker is clicked
+                if (e.target.classList.contains('schedule-marker')) return;
+                openModal(this.getAttribute('data-date'));
+            });
+        });
+        // Add click listeners for schedule markers
+        document.querySelectorAll('.schedule-marker').forEach(marker => {
+            marker.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openViewModal(this.getAttribute('data-date'));
+            });
+        });
+    }
+
+    function openModal(date) {
+        document.getElementById('schedule-modal').classList.remove('hidden');
+        document.getElementById('schedule-date').value = date;
+    }
+    function closeModal() {
+        document.getElementById('schedule-modal').classList.add('hidden');
+        document.getElementById('schedule-form').reset();
+        document.getElementById('transactionValue').style.display = 'none';
+        document.getElementById('numberOfRepetitions').style.display = 'none';
+        document.getElementById('repetitionType').style.display = 'none';
+    }
+
+    function openViewModal(date) {
+        const modal = document.getElementById('view-schedule-modal');
+        const content = document.getElementById('view-schedule-content');
+        const schedulesForDay = (typeof schedules === 'string' ? JSON.parse(schedules) : schedules).filter(s => (s.date || s.dateFormatted) === date);
+        if (schedulesForDay.length === 0) return;
+        let html = '';
+        schedulesForDay.forEach(s => {
+            html += `<div class='mb-4 p-4 border rounded-lg bg-gray-50'>
+                <div class='font-semibold text-lg text-[#6a5acb] mb-1'>${s.title}</div>
+                <div class='text-sm text-gray-700 mb-1'>${s.description ? s.description : ''}</div>
+                <div class='text-xs text-gray-500 mb-1'>Início: ${s.startTime ? s.startTime : '-'}</div>
+                <div class='text-xs text-gray-500 mb-1'>Término: ${s.endTime ? s.endTime : '-'}</div>
+                <div class='text-xs text-gray-500 mb-1'>Transação: ${s.isTransaction ? 'Sim' : 'Não'}${s.transactionValue ? ` (R$ ${s.transactionValue})` : ''}</div>
+                <div class='text-xs text-gray-500 mb-1'>Repetição: ${s.shouldRepeat ? `Sim (${s.numberOfRepetitions}x, ${s.repetitionType || '-'})` : 'Não'}</div>
+                <div class='text-xs text-gray-400'>Criado em: ${s.createdAt ? s.createdAt.replace('T', ' ').slice(0, 16) : '-'}</div>
+            </div>`;
+        });
+        content.innerHTML = html;
+        modal.classList.remove('hidden');
+    }
+    document.getElementById('close-view-modal').onclick = function() {
+        document.getElementById('view-schedule-modal').classList.add('hidden');
+        document.getElementById('view-schedule-content').innerHTML = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        renderCalendar();
+        document.getElementById('close-modal').onclick = closeModal;
+        document.getElementById('schedule-modal').onclick = function(e) {
+            if (e.target === this) closeModal();
+        };
+        // Show/hide transaction value
+        document.getElementById('isTransaction').onchange = function() {
+            document.getElementById('transactionValue').style.display = this.checked ? '' : 'none';
+        };
+        // Show/hide repeat fields
+        document.getElementById('shouldRepeat').onchange = function() {
+            const show = this.checked;
+            document.getElementById('numberOfRepetitions').style.display = show ? '' : 'none';
+            document.getElementById('repetitionType').style.display = show ? '' : 'none';
+        };
+        // Form submit
+        document.getElementById('schedule-form').onsubmit = async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = {
+                title: form.title.value,
+                description: form.description.value || null,
+                startTime: form.startTime.value || null,
+                endTime: form.endTime.value || null,
+                isTransaction: form.isTransaction.checked || false,
+                transactionValue: form.isTransaction.checked ? (form.transactionValue.value ? form.transactionValue.value : null) : null,
+                shouldRepeat: form.shouldRepeat.checked,
+                numberOfRepetitions: form.shouldRepeat.checked ? (form.numberOfRepetitions.value ? parseInt(form.numberOfRepetitions.value) : 0) : 0,
+                repetitionType: form.shouldRepeat.checked ? (form.repetitionType.value || null) : null,
+                date: form.date.value
+            };
+            // Remove date from body, send as part of startTime if needed, or as a separate field if backend expects
+            try {
+                await fetch('/api/v1/schedules/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(response => {
+                    closeModal();
+                    swal("Success", "Agenda criada com sucesso!", "success").then(() => {
+                        location.reload();
+                    });
+                });
+            } catch (err) {
+                swal("Error", "Falha ao criar agenda.", "error");
+            }
+        };
+    });
+</script>
+</body>
+</html>

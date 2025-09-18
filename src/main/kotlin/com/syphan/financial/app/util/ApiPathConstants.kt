@@ -30,4 +30,11 @@ object ApiPathConstants {
         const val SEND_TEST = "$BASE/send"
         const val REMOVE = "$BASE/remove"
     }
+
+    object SCHEDULES {
+        const val BASE = "$API/schedules"
+        const val CREATE = "$BASE/create"
+        const val ALL = "$BASE/all"
+        const val REMOVE = "$BASE/remove"
+    }
 }

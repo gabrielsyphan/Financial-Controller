@@ -19,15 +19,4 @@ class ExceptionHandler {
             )
         return ResponseEntity(body, HttpStatus.BAD_REQUEST)
     }
-
-    @ExceptionHandler(Exception::class)
-    fun handleGenericException(ex: Exception): ResponseEntity<Map<String, Any>> {
-        val body =
-            mapOf(
-                "status" to HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "error" to "Internal Server Error",
-                "message" to (ex.message ?: "Unexpected error"),
-            )
-        return ResponseEntity(body, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
 }

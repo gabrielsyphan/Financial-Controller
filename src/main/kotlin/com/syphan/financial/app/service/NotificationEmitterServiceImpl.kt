@@ -15,6 +15,7 @@ class NotificationEmitterServiceImpl : NotificationEmitterService<SseEmitter> {
 
     override fun subscribe(): SseEmitter {
         logger.info("New client subscribed to notifications")
+
         val emitter = SseEmitter(emitterTimeout)
         emitters.add(emitter)
 
